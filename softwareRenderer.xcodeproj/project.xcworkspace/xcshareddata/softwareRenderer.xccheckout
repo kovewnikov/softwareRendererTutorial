@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>D10DC0FC-5DAE-41B0-A056-4297F0D2D3E0</string>
+	<key>IDESourceControlProjectName</key>
+	<string>softwareRenderer</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>57AEE547A653366530080FAE5D6A418C2FFBC7FA</key>
+		<string>https://github.com/kovewnikov/softwareRendererTutorial.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>softwareRenderer.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>57AEE547A653366530080FAE5D6A418C2FFBC7FA</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/kovewnikov/softwareRendererTutorial.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>57AEE547A653366530080FAE5D6A418C2FFBC7FA</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>57AEE547A653366530080FAE5D6A418C2FFBC7FA</string>
+			<key>IDESourceControlWCCName</key>
+			<string>softwareRendererTutorial</string>
+		</dict>
+	</array>
+</dict>
+</plist>
