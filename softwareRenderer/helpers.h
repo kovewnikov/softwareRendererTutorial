@@ -14,11 +14,11 @@
 #include <vector>
 #include "model.h"
 
-//алгоритм художника
-void  mergeSortFaces(std::vector<std::vector<int> > *faces,
+// сортировка по алгоритму художника
+void  mergeSortFaces(std::vector<std::vector<VertexInfo> > *faces,
                      int num,
                      Model *model,
-                     int (*compareFunc)(const std::vector<int> *a, const std::vector<int> *b, const Model *model));
+                     int (*compareFunc)(const std::vector<VertexInfo> *a, const std::vector<VertexInfo> *b, const Model *model));
 
 
 #endif /* defined(__softwareRenderer__helpers__) */

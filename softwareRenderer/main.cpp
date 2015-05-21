@@ -58,7 +58,7 @@ void line (int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
 
 
 
-void triangle(Vec3i *faces, TGAImage &image,const TGAColor &color, int *zBuffer) {
+void triangle(Vec3i *faces, TGAImage &image,const TGAColor &lightColor, int *zBuffer) {
     if (faces[0].y==faces[1].y && faces[0].y==faces[2].y) return; // i dont care about degenerate triangles
     
     int imgWidth = image.get_width();
@@ -105,7 +105,7 @@ void triangle(Vec3i *faces, TGAImage &image,const TGAColor &color, int *zBuffer)
             int z = faces[0].z + (faces[2].z-faces[0].z)*totalCoef;
             int zAddr = y*imgWidth + x;
             if(0 <= zAddr && zAddr < zBufferSize && z >= zBuffer[zAddr]) {
-                image.set(x,y,color);
+                image.set(x,y,lightColor);
                 zBuffer[zAddr] = z;
             }
         }
@@ -117,16 +117,16 @@ void drawSkeleton(Model *model, TGAColor color, TGAImage *image) {
     float halfWidth = image->get_width()/2.;
     
     for (int i=0; i<model->facesCount(); i++) {
-        std::vector<int> faceRaw = model->faceByIndex(i);
+        std::vector<VertexInfo> faceRaw = model->faceByIndex(i);
         for(int j=0; j<3; j++) {
+            VertexInfo vi0 = faceRaw[j];
+            VertexInfo vi1 = faceRaw[(j+1)%3];
             
-            Vec3f worldV0 = model->vertexByIndex(faceRaw[j]);
-            Vec3f worldV1 = model->vertexByIndex(faceRaw[(j+1)%3]);
             
-            int x0 = (worldV0.x+1.) * halfWidth;
-            int y0 = (worldV0.y+1.) * halfWidth;
-            int x1 = (worldV1.x+1.) * halfWidth;
-            int y1 = (worldV1.y+1.) * halfWidth;
+            int x0 = (vi0.vertexCoordinates().x+1.) * halfWidth;
+            int y0 = (vi0.vertexCoordinates().y+1.) * halfWidth;
+            int x1 = (vi1.vertexCoordinates().x+1.) * halfWidth;
+            int y1 = (vi1.vertexCoordinates().y+1.) * halfWidth;
 
 
             line(x0, y0, x1, y1, *image, color);
@@ -148,15 +148,15 @@ void drawModel(Model *model, TGAImage *image, bool needSortFaces) {
     }
     
     for (int i=0; i<model->facesCount(); i++) {
-        std::vector<int> faceRaw = model->faceByIndex(i);
+        std::vector<VertexInfo> faceRaw = model->faceByIndex(i);
         
         
         Vec3i preparedVertices[3];
-        Vec3f rawV0 = model->vertexByIndex(faceRaw[0]);
+        Vec3f rawV0 = faceRaw[0].vertexCoordinates();
         preparedVertices[0] = Vec3i((rawV0.x+1.)*halfWidth, (rawV0.y+1.)*halfWidth, (rawV0.z+1.)*halfWidth);
-        Vec3f rawV1 = model->vertexByIndex(faceRaw[1]);
+        Vec3f rawV1 = faceRaw[1].vertexCoordinates();
         preparedVertices[1] = Vec3i((rawV1.x+1.)*halfWidth, (rawV1.y+1.)*halfWidth, (rawV1.z+1.)*halfWidth);
-        Vec3f rawV2 = model->vertexByIndex(faceRaw[2]);
+        Vec3f rawV2 = faceRaw[2].vertexCoordinates();
         preparedVertices[2] = Vec3i((rawV2.x+1.)*halfWidth, (rawV2.y+1.)*halfWidth, (rawV2.z+1.)*halfWidth);
         
         

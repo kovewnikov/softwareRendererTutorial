@@ -13,10 +13,24 @@
 #include "geometry.h"
 #include "tgaimage.h"
 
+typedef struct VertexInfo {
+private:
+    Vec3f* _vcPntr;
+    Vec2f* _uvPntr;
+public:
+    VertexInfo(Vec3f* vcPntrIni, Vec2f* uvPntrIni) : _vcPntr(vcPntrIni), _uvPntr(uvPntrIni) {}
+    Vec3f vertexCoordinates() {
+        return *_vcPntr;
+    }
+    Vec2f mainTextureUV() {
+        return *_uvPntr;
+    }
+} VertexInfo;
+
 class Model {
 private:
     std::vector<Vec3f> _verts;
-    std::vector<std::vector<int> > _faces;
+    std::vector<std::vector<VertexInfo> > _faces;
     std::vector<Vec2f> _texCorrdinates;
     TGAImage _textureMap;
 public:
@@ -25,7 +39,7 @@ public:
     int verticesCount();
     int facesCount();
     Vec3f vertexByIndex(int i) const;
-    std::vector<int> faceByIndex(int idx) const;
+    std::vector<VertexInfo> faceByIndex(int idx) const;
     
     void sortFacesByZ();
 };

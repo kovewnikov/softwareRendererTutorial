@@ -46,12 +46,14 @@ Model::Model(const char* filename, const char *textureMapFilename) {
             iss >> trashf;
             _texCorrdinates.push_back(texCoord);
         } else if(!line.compare(0, 2, "f ")) {
-            std::vector<int> face;
-            int trashi, vIndex;
+            std::vector<VertexInfo> face;
+            int trashi, vCoordIndex, uvIndex;
             iss >> trash;
-            while (iss >> vIndex >> trash >> trashi >> trash >> trashi) {
-                vIndex--; // in wavefront obj all indices start at 1, not zero
-                face.push_back(vIndex);
+            while (iss >> vCoordIndex >> trash >> uvIndex >> trash >> trashi) {
+                uvIndex--;
+                vCoordIndex--; // in wavefront obj all indices start at 1, not zero
+                VertexInfo vi(&_verts[vCoordIndex], &_texCorrdinates[uvIndex]);
+                face.push_back(vi);
 
             }
             _faces.push_back(face);
@@ -70,30 +72,33 @@ int Model::facesCount() {
 Vec3f Model::vertexByIndex(int idx) const {
     return _verts[idx];
 }
-std::vector<int> Model::faceByIndex(int idx) const {
+std::vector<VertexInfo> Model::faceByIndex(int idx) const {
     return _faces[idx];
 }
-int compareFacesByZFunc(const std::vector<int> *face1, const std::vector<int> *face2, const Model *model);
+
+int compareFacesByZFunc(const std::vector<VertexInfo> *face1, const std::vector<VertexInfo> *face2, const Model *model);
+
 void Model::sortFacesByZ() {
     mergeSortFaces(&_faces, (int)_faces.size(), this, compareFacesByZFunc);
 }
 
-int compareFacesByZFunc(const std::vector<int> *face1, const std::vector<int> *face2, const Model *model) {
+int compareFacesByZFunc(const std::vector<VertexInfo> *face1, const std::vector<VertexInfo> *face2, const Model *model) {
     
     float someFarZ = 0.0;
     int retVal=-1;
     for(int i=0; i<face1->size(); i++) {
-        Vec3f vertex = model->vertexByIndex(face1->at(i));
-        if(i==0 || vertex.z < someFarZ) {
-            someFarZ = vertex.z;
+        VertexInfo vi = face1->at(i);
+        
+        if(i==0 || vi.vertexCoordinates().z < someFarZ) {
+            someFarZ = vi.vertexCoordinates().z;
         }
     }
     for(int i=0; i<face2->size();i++) {
-        Vec3f vertex = model->vertexByIndex(face2->at(i));
-        if(vertex.z < someFarZ) {
+        VertexInfo vi = face2->at(i);
+        if(vi.vertexCoordinates().z < someFarZ) {
             retVal = 1;
             break;
-        } else if(vertex.z == someFarZ) {
+        } else if(vi.vertexCoordinates().z == someFarZ) {
             retVal = 0;
         }
     }
