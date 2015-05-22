@@ -19,6 +19,7 @@ Model::Model(const char* filename, const char *textureMapFilename) {
         std::cout << "Ошибка при чтении файла текстуры";
         return;
     }
+    _textureMap.flip_vertically();
     
     std::ifstream in;
     in.open(filename, std::ifstream::in);
@@ -38,13 +39,15 @@ Model::Model(const char* filename, const char *textureMapFilename) {
             _verts.push_back(vertex);
         } else if(!line.compare(0, 3, "vt ")) {
             iss >> trash >> trash;
-            Vec2f texCoord;
+            Vec2f texCoordRaw;
             for(int i=0; i<2; i++) {
-                iss >> texCoord.raw[i];
+                iss >> texCoordRaw.raw[i];
             }
             float trashf;
             iss >> trashf;
-            _texCorrdinates.push_back(texCoord);
+            _uvsRaw.push_back(texCoordRaw);
+            Vec2i texCoord = Vec2i(texCoordRaw.x*_textureMap.get_width(), texCoordRaw.y*_textureMap.get_height());
+            _uvs.push_back(texCoord);
         } else if(!line.compare(0, 2, "f ")) {
             std::vector<VertexInfo> face;
             int trashi, vCoordIndex, uvIndex;
@@ -52,7 +55,7 @@ Model::Model(const char* filename, const char *textureMapFilename) {
             while (iss >> vCoordIndex >> trash >> uvIndex >> trash >> trashi) {
                 uvIndex--;
                 vCoordIndex--; // in wavefront obj all indices start at 1, not zero
-                VertexInfo vi(&_verts[vCoordIndex], &_texCorrdinates[uvIndex]);
+                VertexInfo vi(vCoordIndex, uvIndex);
                 face.push_back(vi);
 
             }
@@ -66,14 +69,26 @@ Model::~Model() {}
 int Model::verticesCount() {
     return (int)_verts.size();
 }
+
 int Model::facesCount() {
     return (int)_faces.size();
 }
+Vec2f Model::uvRawByIndex(int idx) const {
+    return _uvsRaw[idx];
+}
+Vec2i Model::uvByIndex(int idx) const {
+    return _uvs[idx];
+}
+
 Vec3f Model::vertexByIndex(int idx) const {
     return _verts[idx];
 }
 std::vector<VertexInfo> Model::faceByIndex(int idx) const {
     return _faces[idx];
+}
+
+TGAColor Model::getTextureMapPixel(Vec2i uv) {
+    return _textureMap.get(uv.x, uv.y);
 }
 
 int compareFacesByZFunc(const std::vector<VertexInfo> *face1, const std::vector<VertexInfo> *face2, const Model *model);
@@ -88,17 +103,19 @@ int compareFacesByZFunc(const std::vector<VertexInfo> *face1, const std::vector<
     int retVal=-1;
     for(int i=0; i<face1->size(); i++) {
         VertexInfo vi = face1->at(i);
-        
-        if(i==0 || vi.vertexCoordinates().z < someFarZ) {
-            someFarZ = vi.vertexCoordinates().z;
+        float viz = model->vertexByIndex(vi.vertexIdx).z;
+
+        if(i==0 || viz < someFarZ) {
+            someFarZ = viz;
         }
     }
     for(int i=0; i<face2->size();i++) {
         VertexInfo vi = face2->at(i);
-        if(vi.vertexCoordinates().z < someFarZ) {
+        float viz = model->vertexByIndex(vi.vertexIdx).z;
+        if(viz < someFarZ) {
             retVal = 1;
             break;
-        } else if(vi.vertexCoordinates().z == someFarZ) {
+        } else if(viz == someFarZ) {
             retVal = 0;
         }
     }

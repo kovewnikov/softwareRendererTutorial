@@ -33,6 +33,10 @@ struct Vec2 {
     inline Vec2<t> operator*(t s) const {
         return Vec2<t>(u*s,v*s);
     }
+    static Vec2<float> lerp(Vec2<t> from, Vec2<t> to, float v) {
+        Vec2<float> retVal((from.x+to.x)*v, (from.y+to.y)*v, (from.z+to.z)*v);
+        return retVal;
+    }
     template <class > friend std::ostream& operator<<(std::ostream& s, Vec2<t>& v);
 };
 
@@ -67,6 +71,10 @@ template<typename t> struct Vec3 {
     void normalize() {
         float l = 1./length();
         x*=l;y*=l;z*=l;
+    }
+    static Vec3<float> lerp(Vec3<t> from, Vec3<t> to, float v) {
+        Vec3<float> retVal((from.x+to.x)*v, (from.y+to.y)*v, (from.z+to.z)*v);
+        return retVal;
     }
     Vec3<float> normalized() const {
         float l = 1./length();

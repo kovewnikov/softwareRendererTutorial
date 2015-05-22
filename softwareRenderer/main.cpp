@@ -58,25 +58,30 @@ void line (int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
 
 
 
-void triangle(Vec3i *faces, TGAImage &image,const TGAColor &lightColor, int *zBuffer) {
+void triangle(Vec3i *faces, Vec2i *uvs, Model *model, TGAImage &renderImage, float lightIntensity, int *zBuffer) {
     if (faces[0].y==faces[1].y && faces[0].y==faces[2].y) return; // i dont care about degenerate triangles
     
-    int imgWidth = image.get_width();
-    int imgHeight = image.get_height();
+    int imgWidth = renderImage.get_width();
+    int imgHeight = renderImage.get_height();
     int zBufferSize = imgWidth*imgHeight;
     
     //выстраиваем вершины по возрастанию y
     for(int i=0; i<3; i++) {
         int swapTargetIdx = i;
         for (int j=i+1; j<3; j++) {
+            
             if(faces[swapTargetIdx].y > faces[j].y) {
                 swapTargetIdx = j;
             }
         }
         if(swapTargetIdx!=i) {
             std::swap(faces[i], faces[swapTargetIdx]);
+            std::swap(uvs[i], uvs[swapTargetIdx]);
         }
+
     }
+    
+    
     int totalHeight = faces[2].y - faces[0].y;
     
     for(int y=faces[0].y; y<=faces[2].y; y++) {
@@ -99,14 +104,32 @@ void triangle(Vec3i *faces, TGAImage &image,const TGAColor &lightColor, int *zBu
             xB = faces[1].x + (faces[2].x-faces[1].x)*segmentCoef;
         }
         
+        int uA = uvs[0].x + (uvs[2].x-uvs[0].x)*totalCoef;
+        int uB;
+        if(!seg2Yet) {
+            uB = uvs[0].x + (uvs[1].x-uvs[0].x)*segmentCoef;
+        } else {
+            uB = uvs[1].x + (uvs[2].x-uvs[1].x)*segmentCoef;
+        }
+        
+        
 
-        if(xA > xB) std::swap(xA, xB);
+        if(xA > xB) { std::swap(xA, xB); std::swap(uA, uB);}
         for(int x=xA; x<=xB; x++) {
             int z = faces[0].z + (faces[2].z-faces[0].z)*totalCoef;
             int zAddr = y*imgWidth + x;
             if(0 <= zAddr && zAddr < zBufferSize && z >= zBuffer[zAddr]) {
-                image.set(x,y,lightColor);
+                
+                float uvXCoef = (x-xA)/(xB-xA == 0 ? 1 : xB-xA);
+                int u = uA + (uB-uA) * uvXCoef;
+                int v = uvs[0].y + (uvs[2].y - uvs[0].y) * totalCoef;
+                //                renderImage.set(x,y,TGAColor(intensity*255, intensity*255, intensity*255, 255));
+                TGAColor color = model->getTextureMapPixel(Vec2i(u,v));
+                renderImage.set(x,y,TGAColor(color.r*lightIntensity, color.g*lightIntensity, color.b*lightIntensity, color.a));
                 zBuffer[zAddr] = z;
+            
+
+                
             }
         }
      }
@@ -123,10 +146,10 @@ void drawSkeleton(Model *model, TGAColor color, TGAImage *image) {
             VertexInfo vi1 = faceRaw[(j+1)%3];
             
             
-            int x0 = (vi0.vertexCoordinates().x+1.) * halfWidth;
-            int y0 = (vi0.vertexCoordinates().y+1.) * halfWidth;
-            int x1 = (vi1.vertexCoordinates().x+1.) * halfWidth;
-            int y1 = (vi1.vertexCoordinates().y+1.) * halfWidth;
+            int x0 = (model->vertexByIndex(vi0.vertexIdx).x+1.) * halfWidth;
+            int y0 = (model->vertexByIndex(vi0.vertexIdx).y+1.) * halfWidth;
+            int x1 = (model->vertexByIndex(vi1.vertexIdx).x+1.) * halfWidth;
+            int y1 = (model->vertexByIndex(vi1.vertexIdx).y+1.) * halfWidth;
 
 
             line(x0, y0, x1, y1, *image, color);
@@ -148,17 +171,22 @@ void drawModel(Model *model, TGAImage *image, bool needSortFaces) {
     }
     
     for (int i=0; i<model->facesCount(); i++) {
-        std::vector<VertexInfo> faceRaw = model->faceByIndex(i);
+        std::vector<VertexInfo> face = model->faceByIndex(i);
         
         
         Vec3i preparedVertices[3];
-        Vec3f rawV0 = faceRaw[0].vertexCoordinates();
+        
+        Vec3f rawV0 = model->vertexByIndex(face[0].vertexIdx);
         preparedVertices[0] = Vec3i((rawV0.x+1.)*halfWidth, (rawV0.y+1.)*halfWidth, (rawV0.z+1.)*halfWidth);
-        Vec3f rawV1 = faceRaw[1].vertexCoordinates();
+        Vec3f rawV1 = model->vertexByIndex(face[1].vertexIdx);
         preparedVertices[1] = Vec3i((rawV1.x+1.)*halfWidth, (rawV1.y+1.)*halfWidth, (rawV1.z+1.)*halfWidth);
-        Vec3f rawV2 = faceRaw[2].vertexCoordinates();
+        Vec3f rawV2 = model->vertexByIndex(face[2].vertexIdx);
         preparedVertices[2] = Vec3i((rawV2.x+1.)*halfWidth, (rawV2.y+1.)*halfWidth, (rawV2.z+1.)*halfWidth);
         
+        Vec2i uvs[3];
+        uvs[0] = model->uvByIndex(face[0].uvIdx);
+        uvs[1] = model->uvByIndex(face[1].uvIdx);
+        uvs[2] = model->uvByIndex(face[2].uvIdx);
         
         Vec3f faceNormVec = (rawV2-rawV0)^(rawV1-rawV0);
         Vec3f lightVec(0,0,-1);
@@ -167,7 +195,7 @@ void drawModel(Model *model, TGAImage *image, bool needSortFaces) {
         
         
         if (intensity>0) {
-            triangle(preparedVertices, *image, TGAColor(intensity*255, intensity*255, intensity*255, 255), zBuffer);
+            triangle(preparedVertices, uvs, model, *image, intensity, zBuffer);
         }
     }
     

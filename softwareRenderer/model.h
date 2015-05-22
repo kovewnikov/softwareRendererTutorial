@@ -14,24 +14,26 @@
 #include "tgaimage.h"
 
 typedef struct VertexInfo {
-private:
-    Vec3f* _vcPntr;
-    Vec2f* _uvPntr;
 public:
-    VertexInfo(Vec3f* vcPntrIni, Vec2f* uvPntrIni) : _vcPntr(vcPntrIni), _uvPntr(uvPntrIni) {}
-    Vec3f vertexCoordinates() {
-        return *_vcPntr;
-    }
-    Vec2f mainTextureUV() {
-        return *_uvPntr;
-    }
+    int vertexIdx;
+    int uvIdx;
+    VertexInfo(int vI, int uvI) : vertexIdx(vI), uvIdx(uvI) {}
+//    Vec3f vertexCoordinates() {
+//        return *_vcPntr;
+//    }
+//    Vec2f mainTextureUV() {
+//        return *_uvPntr;
+//    }
 } VertexInfo;
 
 class Model {
 private:
     std::vector<Vec3f> _verts;
+    std::vector<Vec2f> _uvsRaw;
+    std::vector<Vec2i> _uvs;
+    
     std::vector<std::vector<VertexInfo> > _faces;
-    std::vector<Vec2f> _texCorrdinates;
+    
     TGAImage _textureMap;
 public:
     Model(const char* filename, const char *textureMapFilename);
@@ -39,8 +41,10 @@ public:
     int verticesCount();
     int facesCount();
     Vec3f vertexByIndex(int i) const;
+    Vec2f uvRawByIndex(int idx) const;
+    Vec2i uvByIndex(int idx) const;
     std::vector<VertexInfo> faceByIndex(int idx) const;
-    
+    TGAColor getTextureMapPixel(Vec2i uv);
     void sortFacesByZ();
 };
 
