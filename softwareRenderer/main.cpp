@@ -223,6 +223,18 @@ int main(int argc, const char * argv[]) {
     
     delete model;
     
+    Mati m1(3,3);
+    Mati m2(3,3);
+    Mati result(3,3);
+    m2.set(0, 0, 5);
+    m2.set(1, 1, 12);
+    m2.set(2, 2, 52);
+    
+    
+    Mati::multiplyMatrices(&m1, &m2, &result);
+    
+    std::cout << result;
+    
     return 0;
 }
 
