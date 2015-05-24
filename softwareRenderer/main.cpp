@@ -10,7 +10,6 @@
 #include "tgaimage.h"
 #include "geometry.h"
 #include "model.h"
-#include "deprecated.h"
 #include "helpers.h"
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
@@ -175,12 +174,21 @@ void drawModel(Model *model, TGAImage *image, bool needSortFaces) {
         
         
         Vec3i preparedVertices[3];
-        
         Vec3f rawV0 = model->vertexByIndex(face[0].vertexIdx);
-        preparedVertices[0] = Vec3i((rawV0.x+1.)*halfWidth, (rawV0.y+1.)*halfWidth, (rawV0.z+1.)*halfWidth);
         Vec3f rawV1 = model->vertexByIndex(face[1].vertexIdx);
-        preparedVertices[1] = Vec3i((rawV1.x+1.)*halfWidth, (rawV1.y+1.)*halfWidth, (rawV1.z+1.)*halfWidth);
         Vec3f rawV2 = model->vertexByIndex(face[2].vertexIdx);
+        
+        //трансформим
+        mat transformMat = model->transformMat();
+        mat::multiplyMatrixAndVec3(&transformMat, rawV0, &rawV0);
+        mat::multiplyMatrixAndVec3(&transformMat, rawV1, &rawV1);
+        mat::multiplyMatrixAndVec3(&transformMat, rawV2, &rawV2);
+        
+        
+        preparedVertices[0] = Vec3i((rawV0.x+1.)*halfWidth, (rawV0.y+1.)*halfWidth, (rawV0.z+1.)*halfWidth);
+        
+        preparedVertices[1] = Vec3i((rawV1.x+1.)*halfWidth, (rawV1.y+1.)*halfWidth, (rawV1.z+1.)*halfWidth);
+        
         preparedVertices[2] = Vec3i((rawV2.x+1.)*halfWidth, (rawV2.y+1.)*halfWidth, (rawV2.z+1.)*halfWidth);
         
         Vec2i uvs[3];
@@ -215,25 +223,44 @@ int main(int argc, const char * argv[]) {
     
     
     Model *model =  new Model("resources/african_head.obj", "resources/african_head_diffuse.tga");
+    mat transform(3,3);
+    transform.set(0, 0, 0.5);
+    transform.set(1, 1, 0.5);
+    transform.set(2, 2, 0.5);
+    model->loadTransformMatrix(transform);
     //drawSkeleton(model, red, &image);
     drawModel(model, &image, false);
     
     image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
     image.write_tga_file("output.tga");
     
+    
+    
+//    Vec3f v1 = model->vertexByIndex(4);
+//    std::cout<<v1;
+//    v1.set(0,0,0);
+//    std::cout<<v1;
+//    v1 = model->vertexByIndex(4);
+//    std::cout<<v1;
+    
+    
+//    Mati m1(3,3);
+//    Mati m2(3,3);
+//    Mati result(3,3);
+//    m2.set(0, 0, 5);
+//    m2.set(1, 1, 12);
+//    m2.set(2, 2, 52);
+//    
+//    
+//    Mati::multiplyMatrices(&m1, &m2, &result);
+//    
+//    std::cout << result;
+    
+    
+    
     delete model;
     
-    Mati m1(3,3);
-    Mati m2(3,3);
-    Mati result(3,3);
-    m2.set(0, 0, 5);
-    m2.set(1, 1, 12);
-    m2.set(2, 2, 52);
     
-    
-    Mati::multiplyMatrices(&m1, &m2, &result);
-    
-    std::cout << result;
     
     return 0;
 }

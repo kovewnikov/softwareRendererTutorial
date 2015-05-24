@@ -99,6 +99,13 @@ template<typename t> struct Vec3 {
         return Vec3<t>(y*vec.z - z*vec.y, z*vec.x - x*vec.z, x*vec.y-y*vec.x);
     }
     
+    inline operator Vec3<float>() {
+        return Vec3<float>(static_cast<float>(x), static_cast<float>(y), static_cast<float>(z));
+    }
+    inline operator Vec3<int>() {
+        return Vec3<float>(static_cast<int>(x), static_cast<int>(y), static_cast<int>(z));
+    }
+    
     float length() const {
         return std::sqrt(x*x+y*y+z*z);
     }
@@ -117,174 +124,46 @@ template <typename t> std::ostream& operator<<(std::ostream& s, Vec3<t>& v) {
 
 
 
-
-template <typename t>
 struct mat {
 private:
     int _dimM;
     int _dimN;
-    t *_elements;
+    float *_elements;
 public:
-    mat(Vec2<t> v) {
-        _dimM = 2;
-        _dimN = 1;
-        _elements = new t[_dimM];
-        fill(v.raw);
-    }
-    mat(Vec3<t> v) {
-        _dimM = 3;
-        _dimN = 1;
-        _elements = new t[_dimM];
-        fill(v.raw);
-    }
-    mat(int m, int n) {
-        _dimM = m;
-        _dimN = n;
-        int s = _dimM*_dimN;
-        _elements = new t[s];
-        if(isQuad()) {
-            fillIdentity();
-        } else {
-            fillZero();
-        }
-    }
-    ~mat() {
-        delete [] _elements;
-    }
-    int mDimension() {
-        return _dimM;
-    }
-    int nDimension() {
-        return _dimN;
-    }
-    int size() {
-        return _dimM*_dimN;
-    }
-    bool isQuad() {
-        return _dimM == _dimN;
-    }
-    void fill(t* source) {
-        int mSize = size();
-        for(int i=0; i<mSize; i++) {
-            _elements[i] = source[i];
-        }
-    }
-    void fillIdentity() {
-        if(!isQuad()) {
-            std::cout << "Ошибка! Матрица может быть единичной только в случае, если она является квадратной" << "\n";
-            return;
-        }
-        for(int i=0; i<mDimension(); i++) {
-            for(int j=0; j<nDimension(); j++) {
-                _elements[i*nDimension() + j] = i==j ? 1 : 0;
-            }
-        }
-    }
-    void fillZero() {
-        int mSize = size();
-        for(int i=0; i<mSize; i++) {
-            _elements[i] = 0;
-        }
-    }
+    mat(Vec2<float> v);
+    mat(Vec3<float> v);
+    mat(int m, int n);
+    mat( const mat &other );
+    ~mat();
+    int mDimension() const;
+    int nDimension() const;
+    int size() const;
+    bool isQuad();
+    float* rawElements() const;
+    void fill(float* source);
+    void fillIdentity();
+    void fillZero();
     
-    void set(int m, int n, t val) {
-        _elements[m*_dimN+n] = val;
-    }
-    void setByOffset(int offset, t val) {
-        _elements[offset] = val;
-    }
-    t get (int m, int n) {
-        return _elements[m*_dimN+n];
-    }
-    t getByOffset(int offset) {
-        return _elements[offset];
-    }
+    void set(int m, int n, float val);
+    void setByOffset(int offset, float val);
+    float get (int m, int n);
+    float getByOffset(int offset);
     
-    void toVec2() {
-        Vec2<t> v(_elements[0], _elements[1]);
-        return v;
-    }
-    void toVec3() {
-        Vec3<t> v(_elements[0], _elements[1], _elements[2]);
-        return v;
-    }
+    Vec2<float> toVec2();
+    Vec3<float> toVec3();
+    
+    
+    void operator=(const mat &m );
 
-    static void multiplyMatrices(mat<t> *m1, mat<t> *m2, mat<t> *result) {
-        if(m1->nDimension()!=m2->mDimension()) {
-            std::cout << "Ошибка! Операция умножения требует чтобы n-размерность первой матры была равна m-размерности второй матры" << "\n";
-            return;
-        } else if(m1->mDimension() != result->mDimension() ||
-                  m2->nDimension() != result->nDimension()) {
-            std::cout << "Ошибка! результирующая матрица должна иметь размерность " << m1->mDimension() << "x" << m2->nDimension() << "\n";
-            return;
-        } else {
-            //обнуляем матру-результат
-            result->fillZero();
-            
-            int mDim = m1->mDimension();
-            int nDim = m1->nDimension();
-            int qDim = m2->nDimension();
-            for(int mi=0; mi<mDim; mi++) {
-                for(int qi=0; qi<qDim; qi++) {
-                    for(int ni=0; ni<nDim; ni++) {
-                        t n1 = m1->getByOffset(mi*mDim+ni);
-                        t n2 = m2->getByOffset(ni*qDim+qi);
-                        t accumVal = result->getByOffset(mi*qDim + qi);
-                        result->setByOffset(mi*qDim + qi, accumVal+n1 * n2);
-                    }
-                }
-            }
-        }
-    }
+    static void multiplyMatrices(mat *m1, mat *m2, mat *result);
+    static void multiplyMatrixAndVec2(mat *m, Vec2<float> v, Vec2<float> *result);
+    static void  multiplyMatrixAndVec3(mat *m, Vec3<float> v, Vec3<float> *result);
     
-    static void multiplyMatrixAndVec2(mat<t> *m, Vec2<t> *v, Vec2<t> *result) {
-        mat m2(*v);
-        mat resultMat(2,1);
-        multiplyMatrices(m, *m2, *resultMat);
-        result->set(resultMat.get(0, 0), resultMat.get(1, 0));
-        
-    }
-    static void  multiplyMatrixAndVec3(mat<t> *m, Vec3<t> *v, Vec3<t> *result) {
-        mat m2(*v);
-        mat resultMat(3,1);
-        multiplyMatrices(m, *m2, *resultMat);
-        result->set(resultMat.get(0, 0), resultMat.get(1, 0), resultMat.get(2, 0));
-    }
+    static void addMatrices(mat *m1, mat *m2, mat *result);
+    static void subtractMatrices(mat *m1, mat *m2, mat *result);
     
-    static void addMatrices(mat<t> *m1, mat<t> *m2, mat *result) {
-        if(m1->mDimension()!=m2->mDimension() ||
-           m2->nDimension()!=m2->nDimension()) {
-            std::cout << "Ошибка! Операция сложения требует, чтобы матрицы-слагаемые имели одинаковую размерность" << "\n";
-        } else {
-            int mSize = m1->size();
-            for(int i=0; i<mSize; i++) {
-                result[i] = m1[i]+m2[i];
-            }
-        }
-    }
-    static void subtractMatrices(mat<t> *m1, mat<t> *m2, mat *result) {
-        if(m1->mDimension()!=m2->mDimension() ||
-           m2->nDimension()!=m2->nDimension()) {
-            std::cout << "Ошибка! Операция разности требует, чтобы матрицы имели одинаковую размерность" << "\n";
-        } else {
-            int mSize = m1->size();
-            for(int i=0; i<mSize; i++) {
-                result[i] = m1[i]+m2[i];
-            }
-        }
-    }
-    
-    template <typename > friend std::ostream& operator<<(std::ostream& s, mat<t>& m);
+    friend std::ostream& operator<<(std::ostream& s, mat &m);
 };
-template <typename t> std::ostream& operator<<(std::ostream& s, mat<t>& m) {
-    for(int i=0; i<m.mDimension(); i++) {
-        for(int j=0; j<m.nDimension(); j++) {
-            s << m.get(i, j) << ", ";
-        }
-        s << "\n";
-    }
-    return s;
-}
 
 
 
@@ -293,5 +172,4 @@ typedef Vec2<float> Vec2f;
 typedef Vec3<int> Vec3i;
 typedef Vec3<float> Vec3f;
 
-typedef mat<int> Mati;
 #endif

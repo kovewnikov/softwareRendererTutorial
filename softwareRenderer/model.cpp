@@ -13,7 +13,7 @@
 #include "helpers.h"
 
 
-Model::Model(const char* filename, const char *textureMapFilename) {
+Model::Model(const char* filename, const char *textureMapFilename) : _transformMat(3,3) {
     _textureMap = TGAImage();
     if(!_textureMap.read_tga_file(textureMapFilename)) {
         std::cout << "Ошибка при чтении файла текстуры";
@@ -66,6 +66,14 @@ Model::Model(const char* filename, const char *textureMapFilename) {
     
 }
 Model::~Model() {}
+
+void Model::loadTransformMatrix(mat m) {
+    _transformMat = m;
+}
+mat Model::transformMat() {
+    return _transformMat;
+}
+
 int Model::verticesCount() {
     return (int)_verts.size();
 }

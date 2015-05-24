@@ -35,9 +35,14 @@ private:
     std::vector<std::vector<VertexInfo> > _faces;
     
     TGAImage _textureMap;
+    
+    mat _transformMat;
 public:
     Model(const char* filename, const char *textureMapFilename);
     ~Model();
+    void loadTransformMatrix(mat m);
+    mat transformMat();
+    
     int verticesCount();
     int facesCount();
     Vec3f vertexByIndex(int i) const;

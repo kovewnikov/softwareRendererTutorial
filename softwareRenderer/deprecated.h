@@ -9,7 +9,7 @@
 #ifndef __softwareRenderer__deprecated__
 #define __softwareRenderer__deprecated__
 
-#include <stdio.h>
+
 #include <vector>
 #include "geometry.h"
 #include "tgaimage.h"

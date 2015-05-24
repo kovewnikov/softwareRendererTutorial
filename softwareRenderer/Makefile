@@ -1,7 +1,7 @@
-final: dependency2 dependency3 dependency4 dependency5 dependency6
-	g++ ./build/model.o ./build/helpers.o ./build/deprecated.o ./build/tgaimage.o ./build/main.o -o renderer
-# dependency1: prepare
-# 	g++ -c geometry.cpp -o ./build/geometry.o
+final: dependency1 dependency2 dependency3 dependency4 dependency5 dependency6
+	g++ ./build/geometry.o ./build/model.o ./build/helpers.o ./build/deprecated.o ./build/tgaimage.o ./build/main.o -o renderer
+dependency1: prepare
+	g++ -c geometry.cpp -o ./build/geometry.o
 dependency2: prepare
 	g++ -c model.cpp -o ./build/model.o
 dependency3: prepare

@@ -10,6 +10,7 @@
 		185161081B04953C00AC6FFC /* tgaimage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 185161051B04953C00AC6FFC /* tgaimage.cpp */; };
 		1851613D1B04D68B00AC6FFC /* model.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1851613B1B04D68B00AC6FFC /* model.cpp */; };
 		18D13C331B049436001DA616 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18D13C321B049436001DA616 /* main.cpp */; };
+		18EAE8FF1B12714000B762E0 /* geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 18EAE8FE1B12714000B762E0 /* geometry.cpp */; };
 		840F91131B07B8500067681C /* helpers.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 840F91111B07B8500067681C /* helpers.cpp */; };
 		84107E301B0921FF00124084 /* resources in CopyFiles */ = {isa = PBXBuildFile; fileRef = 84107E2F1B091FAF00124084 /* resources */; };
 		84D995601B069627004D13B9 /* deprecated.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 84D9955E1B069627004D13B9 /* deprecated.cpp */; };
@@ -36,6 +37,7 @@
 		1851613C1B04D68B00AC6FFC /* model.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = model.h; sourceTree = "<group>"; };
 		18D13C2F1B049436001DA616 /* softwareRenderer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = softwareRenderer; sourceTree = BUILT_PRODUCTS_DIR; };
 		18D13C321B049436001DA616 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		18EAE8FE1B12714000B762E0 /* geometry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = geometry.cpp; sourceTree = "<group>"; };
 		840F91111B07B8500067681C /* helpers.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = helpers.cpp; sourceTree = "<group>"; };
 		840F91121B07B8500067681C /* helpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = helpers.h; sourceTree = "<group>"; };
 		84107E2F1B091FAF00124084 /* resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = resources; sourceTree = "<group>"; };
@@ -77,6 +79,7 @@
 				18D13C321B049436001DA616 /* main.cpp */,
 				185161051B04953C00AC6FFC /* tgaimage.cpp */,
 				185161061B04953C00AC6FFC /* tgaimage.h */,
+				18EAE8FE1B12714000B762E0 /* geometry.cpp */,
 				1851613A1B04C03000AC6FFC /* geometry.h */,
 				1851613C1B04D68B00AC6FFC /* model.h */,
 				1851613B1B04D68B00AC6FFC /* model.cpp */,
@@ -151,6 +154,7 @@
 				185161081B04953C00AC6FFC /* tgaimage.cpp in Sources */,
 				840F91131B07B8500067681C /* helpers.cpp in Sources */,
 				1851613D1B04D68B00AC6FFC /* model.cpp in Sources */,
+				18EAE8FF1B12714000B762E0 /* geometry.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
