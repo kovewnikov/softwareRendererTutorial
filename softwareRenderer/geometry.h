@@ -12,7 +12,7 @@
 #include <cmath>
 #include <ostream>
 #include <iostream>
-
+#include <assert.h>
 /*
  * Vec2
  *
@@ -144,23 +144,24 @@ public:
     void fillIdentity();
     void fillZero();
     
-    void set(int m, int n, float val);
-    void setByOffset(int offset, float val);
-    float get (int m, int n);
-    float getByOffset(int offset);
+//    void set(int m, int n, float val);
+//    void setByOffset(int offset, float val);
+//    float get (int m, int n) const;
+    float at(int offset) const;
     
     Vec2<float> toVec2();
     Vec3<float> toVec3();
     
     
     void operator=(const mat &m );
-
-    static void multiplyMatrices(mat *m1, mat *m2, mat *result);
-    static void multiplyMatrixAndVec2(mat *m, Vec2<float> v, Vec2<float> *result);
-    static void  multiplyMatrixAndVec3(mat *m, Vec3<float> v, Vec3<float> *result);
     
-    static void addMatrices(mat *m1, mat *m2, mat *result);
-    static void subtractMatrices(mat *m1, mat *m2, mat *result);
+    mat operator*(const mat &m2) const;
+    Vec2<float> operator*(const Vec2<float> v) const;
+    Vec3<float> operator*(const Vec3<float> v) const;
+    mat operator+(const mat &m2) const;
+    mat operator-(const mat &m2) const;
+    float& operator [](size_t index);
+    const float& operator [](size_t index) const;
     
     friend std::ostream& operator<<(std::ostream& s, mat &m);
 };

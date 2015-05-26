@@ -57,8 +57,8 @@ void line (int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color) {
 
 
 
-void triangle(Vec3i *faces, Vec2i *uvs, Model *model, TGAImage &renderImage, float lightIntensity, int *zBuffer) {
-    if (faces[0].y==faces[1].y && faces[0].y==faces[2].y) return; // i dont care about degenerate triangles
+void triangle(Vec3i *face, Vec2i *uvs, Model *model, TGAImage &renderImage, float lightIntensity, int *zBuffer) {
+    if (face[0].y==face[1].y && face[0].y==face[2].y) return; // i dont care about degenerate triangles
     
     int imgWidth = renderImage.get_width();
     int imgHeight = renderImage.get_height();
@@ -69,38 +69,38 @@ void triangle(Vec3i *faces, Vec2i *uvs, Model *model, TGAImage &renderImage, flo
         int swapTargetIdx = i;
         for (int j=i+1; j<3; j++) {
             
-            if(faces[swapTargetIdx].y > faces[j].y) {
+            if(face[swapTargetIdx].y > face[j].y) {
                 swapTargetIdx = j;
             }
         }
         if(swapTargetIdx!=i) {
-            std::swap(faces[i], faces[swapTargetIdx]);
+            std::swap(face[i], face[swapTargetIdx]);
             std::swap(uvs[i], uvs[swapTargetIdx]);
         }
 
     }
     
     
-    int totalHeight = faces[2].y - faces[0].y;
+    int totalHeight = face[2].y - face[0].y;
     
-    for(int y=faces[0].y; y<=faces[2].y; y++) {
-        bool seg2Yet = y >= faces[1].y;
-        int segmentHeight = seg2Yet ? faces[2].y - faces[1].y : faces[1].y - faces[0].y;
+    for(int y=face[0].y; y<=face[2].y; y++) {
+        bool seg2Yet = y >= face[1].y;
+        int segmentHeight = seg2Yet ? face[2].y - face[1].y : face[1].y - face[0].y;
         
-        float totalCoef = (y-faces[0].y) / (float)totalHeight;
+        float totalCoef = (y-face[0].y) / (float)totalHeight;
         float segmentCoef;
         if(!seg2Yet) {
-            segmentCoef = (y-faces[0].y) / (float)(segmentHeight == 0 ? 1 : segmentHeight);
+            segmentCoef = (y-face[0].y) / (float)(segmentHeight == 0 ? 1 : segmentHeight);
         } else {
-            segmentCoef = (y-faces[1].y) / (float)(segmentHeight == 0 ? 1 : segmentHeight);
+            segmentCoef = (y-face[1].y) / (float)(segmentHeight == 0 ? 1 : segmentHeight);
         }
         
-        int xA = faces[0].x + (faces[2].x-faces[0].x)*totalCoef;
+        int xA = face[0].x + (face[2].x-face[0].x)*totalCoef;
         int xB;
         if(!seg2Yet) {
-            xB = faces[0].x + (faces[1].x-faces[0].x)*segmentCoef;
+            xB = face[0].x + (face[1].x-face[0].x)*segmentCoef;
         } else {
-            xB = faces[1].x + (faces[2].x-faces[1].x)*segmentCoef;
+            xB = face[1].x + (face[2].x-face[1].x)*segmentCoef;
         }
         
         int uA = uvs[0].x + (uvs[2].x-uvs[0].x)*totalCoef;
@@ -115,20 +115,16 @@ void triangle(Vec3i *faces, Vec2i *uvs, Model *model, TGAImage &renderImage, flo
 
         if(xA > xB) { std::swap(xA, xB); std::swap(uA, uB);}
         for(int x=xA; x<=xB; x++) {
-            int z = faces[0].z + (faces[2].z-faces[0].z)*totalCoef;
+            int z = face[0].z + (face[2].z-face[0].z)*totalCoef;
             int zAddr = y*imgWidth + x;
             if(0 <= zAddr && zAddr < zBufferSize && z >= zBuffer[zAddr]) {
                 
-                float uvXCoef = (x-xA)/(xB-xA == 0 ? 1 : xB-xA);
+                float uvXCoef = (x-xA)/(float)(xB-xA == 0 ? 1 : xB-xA);
                 int u = uA + (uB-uA) * uvXCoef;
                 int v = uvs[0].y + (uvs[2].y - uvs[0].y) * totalCoef;
-                //                renderImage.set(x,y,TGAColor(intensity*255, intensity*255, intensity*255, 255));
                 TGAColor color = model->getTextureMapPixel(Vec2i(u,v));
                 renderImage.set(x,y,TGAColor(color.r*lightIntensity, color.g*lightIntensity, color.b*lightIntensity, color.a));
                 zBuffer[zAddr] = z;
-            
-
-                
             }
         }
      }
@@ -171,37 +167,25 @@ void drawModel(Model *model, TGAImage *image, bool needSortFaces) {
     
     for (int i=0; i<model->facesCount(); i++) {
         std::vector<VertexInfo> face = model->faceByIndex(i);
-        
-        
-        Vec3i preparedVertices[3];
-        Vec3f rawV0 = model->vertexByIndex(face[0].vertexIdx);
-        Vec3f rawV1 = model->vertexByIndex(face[1].vertexIdx);
-        Vec3f rawV2 = model->vertexByIndex(face[2].vertexIdx);
-        
-        //трансформим
+
+        Vec3f rawV[3];
         mat transformMat = model->transformMat();
-        mat::multiplyMatrixAndVec3(&transformMat, rawV0, &rawV0);
-        mat::multiplyMatrixAndVec3(&transformMat, rawV1, &rawV1);
-        mat::multiplyMatrixAndVec3(&transformMat, rawV2, &rawV2);
-        
-        
-        preparedVertices[0] = Vec3i((rawV0.x+1.)*halfWidth, (rawV0.y+1.)*halfWidth, (rawV0.z+1.)*halfWidth);
-        
-        preparedVertices[1] = Vec3i((rawV1.x+1.)*halfWidth, (rawV1.y+1.)*halfWidth, (rawV1.z+1.)*halfWidth);
-        
-        preparedVertices[2] = Vec3i((rawV2.x+1.)*halfWidth, (rawV2.y+1.)*halfWidth, (rawV2.z+1.)*halfWidth);
-        
+        Vec3i preparedVertices[3];
         Vec2i uvs[3];
-        uvs[0] = model->uvByIndex(face[0].uvIdx);
-        uvs[1] = model->uvByIndex(face[1].uvIdx);
-        uvs[2] = model->uvByIndex(face[2].uvIdx);
+        for(int j=0; j<3; j++) {
+            rawV[j] = model->vertexByIndex(face[j].vertexIdx);
+            //трансформим
+            rawV[j] = transformMat * rawV[j];
+            //перобразуем в координаты канвваса
+            preparedVertices[j] = Vec3i((rawV[j].x+1.)*halfWidth, (rawV[j].y+1.)*halfWidth, (rawV[j].z+1.)*halfWidth);
+            //заполняем uv
+            uvs[j] = model->uvByIndex(face[j].uvIdx);
+        }
         
-        Vec3f faceNormVec = (rawV2-rawV0)^(rawV1-rawV0);
+        Vec3f faceNormVec = (rawV[2]-rawV[0])^(rawV[1]-rawV[0]);
         Vec3f lightVec(0,0,-1);
         float intensity = lightVec * faceNormVec.normalized();
-        
-        
-        
+
         if (intensity>0) {
             triangle(preparedVertices, uvs, model, *image, intensity, zBuffer);
         }
@@ -224,40 +208,16 @@ int main(int argc, const char * argv[]) {
     
     Model *model =  new Model("resources/african_head.obj", "resources/african_head_diffuse.tga");
     mat transform(3,3);
-    transform.set(0, 0, 0.5);
-    transform.set(1, 1, 0.5);
-    transform.set(2, 2, 0.5);
+//    transform.set(0, 0, 0.5);
+//    transform.set(1, 1, 0.5);
+//    transform.set(2, 2, 0.5);
     model->loadTransformMatrix(transform);
     //drawSkeleton(model, red, &image);
     drawModel(model, &image, false);
     
     image.flip_vertically(); // i want to have the origin at the left bottom corner of the image
     image.write_tga_file("output.tga");
-    
-    
-    
-//    Vec3f v1 = model->vertexByIndex(4);
-//    std::cout<<v1;
-//    v1.set(0,0,0);
-//    std::cout<<v1;
-//    v1 = model->vertexByIndex(4);
-//    std::cout<<v1;
-    
-    
-//    Mati m1(3,3);
-//    Mati m2(3,3);
-//    Mati result(3,3);
-//    m2.set(0, 0, 5);
-//    m2.set(1, 1, 12);
-//    m2.set(2, 2, 52);
-//    
-//    
-//    Mati::multiplyMatrices(&m1, &m2, &result);
-//    
-//    std::cout << result;
-    
-    
-    
+
     delete model;
     
     

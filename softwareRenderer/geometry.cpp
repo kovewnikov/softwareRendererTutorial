@@ -72,16 +72,16 @@ void mat::fillZero() {
     }
 }
 
-void mat::set(int m, int n, float val) {
-    _elements[m*_dimN+n] = val;
-}
-void mat::setByOffset(int offset, float val) {
-    _elements[offset] = val;
-}
-float mat::get (int m, int n) {
-    return _elements[m*_dimN+n];
-}
-float mat::getByOffset(int offset) {
+//void mat::set(int m, int n, float val) {
+//    _elements[m*_dimN+n] = val;
+//}
+//void mat::setByOffset(int offset, float val) {
+//    _elements[offset] = val;
+//}
+//float mat::get (int m, int n) const {
+//    return _elements[m*_dimN+n];
+//}
+float mat::at(int offset) const {
     return _elements[offset];
 }
 
@@ -108,79 +108,87 @@ void mat::operator=(const mat &m ) {
         _elements[i] = mEl[i];
     }
 }
-
-void mat::multiplyMatrices(mat *m1, mat *m2, mat *result) {
-    if(m1->nDimension()!=m2->mDimension()) {
+mat mat::operator*(const mat &m2) const{
+    mat result(mDimension(), m2.nDimension());
+    if(nDimension()!=m2.mDimension()) {
         std::cout << "Ошибка! Операция умножения требует чтобы n-размерность первой матры была равна m-размерности второй матры" << "\n";
-        return;
-    } else if(m1->mDimension() != result->mDimension() ||
-              m2->nDimension() != result->nDimension()) {
-        std::cout << "Ошибка! результирующая матрица должна иметь размерность " << m1->mDimension() << "x" << m2->nDimension() << "\n";
-        return;
+        return result;
     } else {
         //обнуляем матру-результат
-        result->fillZero();
+        result.fillZero();
         
-        int mDim = m1->mDimension();
-        int nDim = m1->nDimension();
-        int qDim = m2->nDimension();
+        int mDim = mDimension();
+        int nDim = nDimension();
+        int qDim = m2.nDimension();
         for(int mi=0; mi<mDim; mi++) {
             for(int qi=0; qi<qDim; qi++) {
                 for(int ni=0; ni<nDim; ni++) {
-                    float n1 = m1->getByOffset(mi*mDim+ni);
-                    float n2 = m2->getByOffset(ni*qDim+qi);
-                    float accumVal = result->getByOffset(mi*qDim + qi);
-                    result->setByOffset(mi*qDim + qi, accumVal+n1 * n2);
+                    float n1 = this->at(mi*mDim+ni);
+                    float n2 = m2[ni*qDim+qi];
+                    float accumVal = result[mi*qDim + qi];
+                    result[mi*qDim + qi] = accumVal+n1 * n2;
                 }
             }
         }
     }
+    return result;
 }
-
-void mat::multiplyMatrixAndVec2(mat *m, Vec2<float> v, Vec2<float> *result) {
+Vec2<float> mat::operator*(const Vec2<float> v) const {
     mat m2(v);
-    mat resultMat(2,1);
+    mat resultMat = *this * m2;;
     
-    multiplyMatrices(m, &m2, &resultMat);
-    result->set(resultMat.get(0, 0), resultMat.get(1, 0));
-    
+    Vec2f result;
+    result.set(resultMat[0], resultMat[1]);
+    return result;
 }
-void mat::multiplyMatrixAndVec3(mat *m, Vec3<float> v, Vec3<float> *result) {
+Vec3<float> mat::operator*(const Vec3<float> v) const {
     mat m2(v);
-    mat resultMat(3,1);
+    mat resultMat = *this * m2;;
     
-    
-    multiplyMatrices(m, &m2, &resultMat);
-    result->set(resultMat.get(0, 0), resultMat.get(1, 0), resultMat.get(2, 0));
+    Vec3f result;
+    result.set(resultMat[0], resultMat[1], resultMat[2]);
+    return result;
 }
-
-void mat::addMatrices(mat *m1, mat *m2, mat *result) {
-    if(m1->mDimension()!=m2->mDimension() ||
-       m2->nDimension()!=m2->nDimension()) {
+mat mat::operator+(const mat &m2) const {
+    mat result(mDimension(), nDimension());
+    if(mDimension()!=m2.mDimension() ||
+       nDimension()!=m2.nDimension()) {
         std::cout << "Ошибка! Операция сложения требует, чтобы матрицы-слагаемые имели одинаковую размерность" << "\n";
     } else {
-        int mSize = m1->size();
+        int mSize = size();
+        mat result(mDimension(), nDimension());
         for(int i=0; i<mSize; i++) {
-            result->setByOffset(i, m1->getByOffset(i) + m2->getByOffset(i));
+            result[i] = this->at(i) + m2.at(i);
         }
     }
+    return result;
 }
-void mat::subtractMatrices(mat *m1, mat *m2, mat *result) {
-    if(m1->mDimension()!=m2->mDimension() ||
-       m2->nDimension()!=m2->nDimension()) {
+mat mat::operator-(const mat &m2) const {
+    mat result(mDimension(), nDimension());
+    if(mDimension()!=m2.mDimension() ||
+       nDimension()!=m2.nDimension()) {
         std::cout << "Ошибка! Операция разности требует, чтобы матрицы имели одинаковую размерность" << "\n";
     } else {
-        int mSize = m1->size();
+        int mSize = size();
         for(int i=0; i<mSize; i++) {
-            result->setByOffset(i, m1->getByOffset(i) - m2->getByOffset(i));
+            result[i] = this->at(i) - m2.at(i);
         }
     }
+    return result;
+}
+
+float& mat::operator [](size_t index) {
+    assert(index<size());
+    return _elements[index];
+}
+const float& mat::operator [](size_t index) const {
+    return _elements[index];
 }
 
 std::ostream& operator<<(std::ostream& s, mat&m) {
     for(int i=0; i<m.mDimension(); i++) {
         for(int j=0; j<m.nDimension(); j++) {
-            s << m.get(i, j) << ", ";
+            s << m[i*m.mDimension() + j] << ", ";
         }
         s << "\n";
     }
