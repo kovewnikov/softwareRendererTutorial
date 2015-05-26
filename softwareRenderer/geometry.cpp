@@ -15,7 +15,11 @@ mat::mat(Vec2<float> v) : _dimM(2), _dimN(1) {
 }
 mat::mat(Vec3<float> v) : _dimM(3), _dimN(1) {
     _elements = new float[_dimM];
-    fill((float*)v.raw);
+    fill(v.raw);
+}
+mat::mat(Vec4<float> v) : _dimM(4), _dimN(1) {
+    _elements = new float[_dimM];
+    fill(v.raw);
 }
 mat::mat(int m, int n) : _dimM(m), _dimN(n) {
     int s = _dimM*_dimN;
@@ -93,13 +97,13 @@ Vec3<float> mat::toVec3() {
     Vec3<float> v(_elements[0], _elements[1], _elements[2]);
     return v;
 }
-
+Vec4<float> mat::toVec4() {
+    Vec4<float> v(_elements[0], _elements[1], _elements[2], _elements[3]);
+    return v;
+}
 
 void mat::operator=(const mat &m ) {
-    if(size()!=m.size()) {
-        std::cout<<"Операция присваивания предусмотрена только для матриц одинаковой размерности\n";
-        return;
-    }
+    assert(size()==m.size());//Операция присваивания предусмотрена только для матриц одинаковой размерности
     _dimM = m.mDimension();
     _dimN = m.nDimension();
     int s = size();
@@ -147,6 +151,14 @@ Vec3<float> mat::operator*(const Vec3<float> v) const {
     
     Vec3f result;
     result.set(resultMat[0], resultMat[1], resultMat[2]);
+    return result;
+}
+Vec4<float> mat::operator*(const Vec4<float> v) const {
+    mat m2(v);
+    mat resultMat = *this * m2;;
+    
+    Vec4f result;
+    result.set(resultMat[0], resultMat[1], resultMat[2], resultMat[3]);
     return result;
 }
 mat mat::operator+(const mat &m2) const {

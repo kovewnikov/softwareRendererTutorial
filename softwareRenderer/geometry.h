@@ -120,6 +120,31 @@ template <typename t> std::ostream& operator<<(std::ostream& s, Vec3<t>& v) {
     return s;
 }
 
+template <typename t>
+struct Vec4 {
+    union {
+        struct { t x, y, z, r; };
+        t raw[4];
+    };
+    Vec4() : x(0), y(0), z(0), r(0) {}
+    Vec4(t xi, t yi, t zi, t ri) : x(xi), y(yi), z(zi), r(ri) {}
+    Vec4(Vec3<t> v) : x(v.x), y(v.y), z(v.z), r(1) {}
+    void set(t newX, t newY, t newZ,  t newR) {
+        x = newX;
+        y = newY;
+        z = newZ;
+        r = newR;
+    }
+    Vec3<float>projectTo3D() {
+        return Vec3<float>(x/r, y/r, z/r);
+    }
+    template <typename > friend std::ostream& operator<<(std::ostream& s, Vec4<t>& v);
+};
+template <typename t> std::ostream& operator<<(std::ostream& s, Vec4<t>& v) {
+    s << "(" << v.x << ", " << v.y << ", " << v.z << ", " << v.r << ")\n";
+    return s;
+}
+
 
 
 
@@ -132,6 +157,7 @@ private:
 public:
     mat(Vec2<float> v);
     mat(Vec3<float> v);
+    mat(Vec4<float> v);
     mat(int m, int n);
     mat( const mat &other );
     ~mat();
@@ -151,13 +177,14 @@ public:
     
     Vec2<float> toVec2();
     Vec3<float> toVec3();
-    
+    Vec4<float> toVec4();
     
     void operator=(const mat &m );
     
     mat operator*(const mat &m2) const;
     Vec2<float> operator*(const Vec2<float> v) const;
     Vec3<float> operator*(const Vec3<float> v) const;
+    Vec4<float> operator*(const Vec4<float> v) const;
     mat operator+(const mat &m2) const;
     mat operator-(const mat &m2) const;
     float& operator [](size_t index);
@@ -172,5 +199,7 @@ typedef Vec2<int> Vec2i;
 typedef Vec2<float> Vec2f;
 typedef Vec3<int> Vec3i;
 typedef Vec3<float> Vec3f;
+typedef Vec4<int> Vec4i;
+typedef Vec4<float> Vec4f;
 
 #endif

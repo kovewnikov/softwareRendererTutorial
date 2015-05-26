@@ -175,7 +175,7 @@ void drawModel(Model *model, TGAImage *image, bool needSortFaces) {
         for(int j=0; j<3; j++) {
             rawV[j] = model->vertexByIndex(face[j].vertexIdx);
             //трансформим
-            rawV[j] = transformMat * rawV[j];
+            rawV[j] = (transformMat * Vec4f(rawV[j])).projectTo3D();
             //перобразуем в координаты канвваса
             preparedVertices[j] = Vec3i((rawV[j].x+1.)*halfWidth, (rawV[j].y+1.)*halfWidth, (rawV[j].z+1.)*halfWidth);
             //заполняем uv
@@ -207,7 +207,9 @@ int main(int argc, const char * argv[]) {
     
     
     Model *model =  new Model("resources/african_head.obj", "resources/african_head_diffuse.tga");
-    mat transform(3,3);
+    mat transform(4,4);
+    transform[14] = -0.3;
+    
 //    transform.set(0, 0, 0.5);
 //    transform.set(1, 1, 0.5);
 //    transform.set(2, 2, 0.5);
