@@ -208,12 +208,28 @@ int main(int argc, const char * argv[]) {
     
     Model *model =  new Model("resources/african_head.obj", "resources/african_head_diffuse.tga");
     mat transform(4,4);
-    transform[14] = -0.3;
+    
+    //перспективное искажение
+    //transform[14] = -0.3;
+    //test
+    transform[6] = 0.9;
+    
+    
+    mat transform2(4,4);
+    transform2[0] = cosf(M_PI/2);
+    transform2[2] = -sinf(M_PI/2);
+    transform2[8] = sinf(M_PI/2);
+    transform2[10] = cosf(M_PI/2);
+//    transform2[5] = cosf(M_PI/2);
+//    transform2[6] = -sinf(M_PI/2);
+//    transform2[9] = sinf(M_PI/2);
+//    transform2[10] = cosf(M_PI/2);
+    
     
 //    transform.set(0, 0, 0.5);
 //    transform.set(1, 1, 0.5);
 //    transform.set(2, 2, 0.5);
-    model->loadTransformMatrix(transform);
+    model->loadTransformMatrix(transform2*transform);
     //drawSkeleton(model, red, &image);
     drawModel(model, &image, false);
     
