@@ -170,10 +170,15 @@ public:
     void fillIdentity();
     void fillZero();
     
-//    void set(int m, int n, float val);
+    void set(int m, int n, float val);
 //    void setByOffset(int offset, float val);
-//    float get (int m, int n) const;
+    float get (int m, int n) const;
     float at(int offset) const;
+    
+    mat minorByRowAndCol(int targetM, int targetN) const;
+    float det() const;
+    mat inversed() const;
+    mat transposed() const;
     
     Vec2<float> toVec2();
     Vec3<float> toVec3();
@@ -182,6 +187,8 @@ public:
     void operator=(const mat &m );
     
     mat operator*(const mat &m2) const;
+    mat operator*(float x) const;
+    void operator*=(float x);
     Vec2<float> operator*(const Vec2<float> v) const;
     Vec3<float> operator*(const Vec3<float> v) const;
     Vec4<float> operator*(const Vec4<float> v) const;
@@ -189,6 +196,8 @@ public:
     mat operator-(const mat &m2) const;
     float& operator [](size_t index);
     const float& operator [](size_t index) const;
+    
+    static float detByMat(const mat &m);
     
     friend std::ostream& operator<<(std::ostream& s, mat &m);
 };

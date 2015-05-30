@@ -76,18 +76,77 @@ void mat::fillZero() {
     }
 }
 
-//void mat::set(int m, int n, float val) {
-//    _elements[m*_dimN+n] = val;
-//}
+void mat::set(int m, int n, float val) {
+    _elements[m*_dimN+n] = val;
+}
 //void mat::setByOffset(int offset, float val) {
 //    _elements[offset] = val;
 //}
-//float mat::get (int m, int n) const {
-//    return _elements[m*_dimN+n];
-//}
+float mat::get (int m, int n) const {
+    return _elements[m*_dimN+n];
+}
 float mat::at(int offset) const {
     return _elements[offset];
 }
+
+
+
+//алгебраическое дополнение для элемента:
+mat mat::minorByRowAndCol(int targetM, int targetN) const {
+    int minorSize = (this->mDimension()-1) * (this->nDimension()-1);
+    float *source = new float[minorSize];
+    int counter=0;
+    for(int i=0; i<this->size(); i++) {
+        bool itsOk =
+        (i != floor(i/this->mDimension()) * this->nDimension() + targetN) &&
+        (i != targetM * this->nDimension() + i%this->nDimension());
+        
+        if(itsOk) {
+            source[counter] = this->at(i);
+            counter++;
+        }
+    }
+    mat minor(this->mDimension()-1, this->nDimension()-1);
+    minor.fill(source);
+    delete [] source;
+    return minor;
+}
+
+float mat::det() const {
+    return mat::detByMat(*this);
+}
+mat mat::transposed() const {
+    mat transposed(this->mDimension(), this->nDimension());
+    for(int i=0; i<this->mDimension(); i++) {
+        for(int j=0; j<this->nDimension(); j++) {
+            transposed.set(j, i, this->get(i, j));
+        }
+    }
+    return transposed;
+}
+mat mat::inversed() const {
+    //обратная матрица равняется 1/det(A) * A(+T), где А - исходная матрица, det(A) - ее определитель,
+    //A(+T) - транспонированная матрица алгебраических дополнений
+    //матрица алгебраических дополнений (A(+)) - матрица элементы которой составляет соответствующие каждому элементу алгебраические дополнения
+    //алгебраическое дополнение - определитель минора  к некоторому элементу в матрице
+//    float deter = std::abs(this->det());
+    float deter = this->det();
+    float oneDivDet = 1/deter;
+    
+    mat result(this->mDimension(), this->nDimension());
+    for(int i=0; i<result.mDimension(); i++) {
+        for(int j=0; j<result.nDimension(); j++) {
+            result[i*result.nDimension() + j] = ((i+j)%2==0? 1: -1) * minorByRowAndCol(i, j).det();
+        }
+        
+    }
+    result = result.transposed();
+    
+    result*= oneDivDet;
+    return result;
+}
+
+
 
 Vec2<float> mat::toVec2() {
     Vec2<float> v(_elements[0], _elements[1]);
@@ -136,6 +195,20 @@ mat mat::operator*(const mat &m2) const{
         }
     }
     return result;
+}
+mat mat::operator*(float x) const {
+    mat resultMat(this->mDimension(), this->nDimension());
+    for(int i=0; i<resultMat.size(); i++) {
+        resultMat[i] = this->at(i)*x;
+    }
+    
+    return resultMat;
+}
+void mat::operator*=(float x) {
+    for(int i=0; i<this->size(); i++) {
+        _elements[i] = _elements[i]*x;
+    }
+    
 }
 Vec2<float> mat::operator*(const Vec2<float> v) const {
     mat m2(v);
@@ -195,7 +268,24 @@ float& mat::operator [](size_t index) {
 }
 const float& mat::operator [](size_t index) const {
     return _elements[index];
+    
 }
+
+
+
+float mat::detByMat(const mat &m) {
+    assert(m.mDimension() == m.nDimension());
+    float accumDet=0;
+    if(m.mDimension() > 2) {
+        for(int i=0; i<m.nDimension(); i++) {
+            accumDet += m.get(0, i) * (i%2==0? 1 : -1) * mat::detByMat(m.minorByRowAndCol(0, i));
+        }
+    } else {
+        accumDet = m[0]*m[3] - m[1]*m[2];
+    }
+    return accumDet;
+}
+
 
 std::ostream& operator<<(std::ostream& s, mat&m) {
     for(int i=0; i<m.mDimension(); i++) {
