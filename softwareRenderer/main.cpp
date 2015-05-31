@@ -22,15 +22,21 @@ mat lookAt(Vec3f eye, Vec3f center, Vec3f up) {
     Vec3f newEX = (up^newEZ).normalized();
     Vec3f newEY = (newEZ^newEX).normalized();
     
+    std::cout<<"newEX\n" << newEX;
+    std::cout<<"newEY\n" << newEY;
+    std::cout<<"newEZ\n" << newEZ;
     
     mat view(4,4);
+    mat transform(4,4);
     for(int i=0; i<3; i++) {
         view.set(0, i, newEX.raw[i]);
         view.set(1, i, newEY.raw[i]);
         view.set(2, i, newEZ.raw[i]);
+        transform.set(i, 3, -center.raw[i]);
+        
     }
-    return view;
-    //return view.inversed();
+    mat modelView = view * transform;
+    return modelView;
 }
 
 //юзаем алгоритм Брезенхема для растеризации линии
@@ -224,62 +230,15 @@ int main(int argc, const char * argv[]) {
     
     Model *model =  new Model("resources/african_head.obj", "resources/african_head_diffuse.tga");
     mat transform = lookAt(Vec3f(1,0,0), Vec3f(), Vec3f(0,1,0));
-    std::cout << "look at matrix\n";
+    std::cout << "model view matrix\n";
     std::cout << transform;
-//    std::cout << "look at matrix inversed\n";
-//    transform = transform.inversed();
-//    std::cout << transform;
+    std::cout << "look at matrix inversed\n";
+    mat transform2 = transform.inversed();
+    std::cout << transform2;
     
     
-    std::cout << "test\n";
-    mat m1(4,4);
-    for(int i=0; i<m1.size()-m1.nDimension(); i++) {
-        if(i==3 || i==7 || i==11) continue;
-        m1[i] = rand()%55;
-    }
+
     
-    mat m2 = m1.minorByRowAndCol(3, 3);
-    std::cout << "m1\n";
-    std::cout << m1;
-    std::cout << "m1 -1\n";
-    m1 = m1.inversed();
-    std::cout << m1 << "\n";
-    std::cout << "m1\n";
-    m1 = m1.inversed();
-    std::cout << m1<< "\n";
-//
-//    std::cout << "m2\n";
-//    
-//    std::cout << m2;
-//    std::cout << "m2 -1\n";
-//    m2 = m2.inversed();
-//    std::cout << m2 << "\n";
-//    std::cout << "m2 det\n";
-//    std::cout << m2.det() << "\n";
-    
-    
-    
-    
-    //перспективное искажение
-    //transform[14] = -0.3;
-    //test
-//    transform[6] = 0.9;
-    
-    
-//    mat transform2(4,4);
-//    transform2[0] = cosf(M_PI/2);
-//    transform2[2] = -sinf(M_PI/2);
-//    transform2[8] = sinf(M_PI/2);
-//    transform2[10] = cosf(M_PI/2);
-////    transform2[5] = cosf(M_PI/2);
-////    transform2[6] = -sinf(M_PI/2);
-////    transform2[9] = sinf(M_PI/2);
-////    transform2[10] = cosf(M_PI/2);
-//    
-//    
-////    transform.set(0, 0, 0.5);
-////    transform.set(1, 1, 0.5);
-////    transform.set(2, 2, 0.5);
     model->loadTransformMatrix(transform);
     //drawSkeleton(model, red, &image);
     drawModel(model, &image, false);
